@@ -1,8 +1,10 @@
 using Movement;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 namespace Healing
 {
@@ -20,9 +22,12 @@ namespace Healing
             {
                 Destroy(gameObject);
             }
+
+            HideHealingUI();
         }
 
         Patient currentPatient;
+        public Patient CurrentPatient { get { return currentPatient; } }
 
         float preventDoubleClick;
 
@@ -31,12 +36,16 @@ namespace Healing
             if (preventDoubleClick > 0f) { return; }
             preventDoubleClick = 0.5f;
 
+            patientCanBeDischarged = false;
+
             PlayerController.Instance.DisableCharacterController();
             //playerInput.Input.Directional.performed += OnDirectionChange;
             //playerInput.Input.Directional.canceled += OnDirectionChange;
 
             currentPatient = patient;
             healingMinigameActive = true;
+
+            ShowHealingUI();
 
             //testing 
             StartDirectionalMinigame();
@@ -46,6 +55,8 @@ namespace Healing
         {
             if (preventDoubleClick > 0f) { return; }
             preventDoubleClick = 0.5f;
+
+            HideHealingUI();
 
             foreach (Transform child in transform)
             {
@@ -69,24 +80,41 @@ namespace Healing
 
             if (healingMinigameActive)
             {
-                Debug.Log("close");
-                CloseHealingMenu();
+                if (patientCanBeDischarged)
+                {
+                    DischargePatient();
+                }
+                else
+                {
+                    CloseHealingMenu();
+                }
             }
+        }
+
+        public void MinigameHealPatient(float healingPercentage)
+        {
+            currentPatient?.AddMaxHealingProgress(healingPercentage);
         }
 
 
         [SerializeField] GameObject inputMinigame;
 
-        private void Start()
-        {
-
-        }
+        float timeSinceUpdatedPatientHealing;
 
         private void Update()
         {
             if (preventDoubleClick >= 0f)
             {
                 preventDoubleClick -= Time.deltaTime;
+            }
+
+            if (currentPatient != null)
+            {
+                timeSinceUpdatedPatientHealing += Time.deltaTime;
+                if (timeSinceUpdatedPatientHealing > 1f)
+                {
+                    currentPatient.UpdateHealingProgress();
+                }
             }
         }
 
@@ -100,8 +128,50 @@ namespace Healing
             Instantiate(inputMinigame, transform);
         }
 
-    }
+        void DischargePatient()
+        {
+            currentPatient?.Discharge();
+            CloseHealingMenu();
+        }
 
+        #region UI
+
+        [SerializeField] GameObject healingUI;
+        void ShowHealingUI()
+        {
+            healingUI.SetActive(true);
+            dischargeButton.SetActive(false);
+        }
+        void HideHealingUI()
+        {
+            healingUI.SetActive(false);
+        }
+
+        [SerializeField] Image currentHealthProgressBar;
+        [SerializeField] Image maximumHealthProgressBar;
+        [SerializeField] Image maximumHealthAllowed;
+        [SerializeField] TMP_Text progressText;
+
+        public void UpdateHealthBars(float currentHealth, float maxHealth)
+        {
+            progressText.text = Mathf.RoundToInt(currentHealth).ToString() + "%";
+            currentHealthProgressBar.fillAmount = currentHealth / 100;
+            maximumHealthProgressBar.fillAmount = maxHealth / 100;
+            maximumHealthAllowed.fillAmount = (currentHealth / 100) + 0.4f;
+        }
+
+        [SerializeField] GameObject dischargeButton;
+        [SerializeField] GameObject closeButton;
+        bool patientCanBeDischarged;
+        public void EnableDischargeButton()
+        {
+            closeButton.SetActive(false);
+            dischargeButton.SetActive(true);
+            patientCanBeDischarged = true;
+        }
+
+        #endregion
+    }
 
 }
 

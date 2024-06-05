@@ -2,7 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
-
+using Inventory;
+using Foraging;
 
 namespace Movement
 {
@@ -36,6 +37,8 @@ namespace Movement
         float checkForInteractionsTimer;
         private void Update()
         {
+            PickupNearbyObjects();
+
             if (disablePlayerInput) { return; }
 
             checkForInteractionsTimer += Time.deltaTime;
@@ -133,6 +136,38 @@ namespace Movement
             if (disablePlayerInput) { return; }
             CheckForInteractions();
             closestInteractable?.Interact();
+        }
+
+        [SerializeField] Transform colliderPosition;
+        [SerializeField] float pickupDistance;
+        float pickUpCheckTimer;
+        void PickupNearbyObjects()
+        {
+            if (pickUpCheckTimer > 0f)
+            {
+                pickUpCheckTimer -= Time.deltaTime;
+                return;
+            }
+
+            RaycastHit2D[] hits = Physics2D.CircleCastAll(interactionOrigin.position, pickupDistance, Vector2.up, 0f);
+            foreach (RaycastHit2D hit in hits)
+            {
+                if (hit.collider.GetComponent<ForagableResource>() != null)
+                {
+                    //move the hit object towards the players collider (and for
+                    Vector3 directionVector = hit.collider.transform.position - colliderPosition.position;
+                    hit.collider.transform.position -= directionVector.normalized * Time.deltaTime * 5f;
+
+                    if (directionVector.sqrMagnitude < Mathf.Pow((pickupDistance * 0.1f), 2))
+                    {
+                        hit.collider.GetComponent<ForagableResource>().Pickup();
+                    }
+
+                    return;
+                }
+            }
+
+            pickUpCheckTimer = 0.1f;//if we didnt pick anything up, dont check next frame, wait a lil while
         }
 
 

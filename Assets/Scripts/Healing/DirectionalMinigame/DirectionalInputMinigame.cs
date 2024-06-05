@@ -31,7 +31,6 @@ namespace Healing
             futureDirectionalInputs = new List<InputDirections>();
             QueueInput();
             QueueInput();
-            QueueInput();
             UpdateDesiredInput();
         }
 
@@ -60,6 +59,8 @@ namespace Healing
 
         void CompleteInput()
         {
+            float progressMadePerInput = Random.Range(2f, 4f);
+            HealingManager.Instance.MinigameHealPatient(progressMadePerInput);
             futureDirectionalInputs.RemoveAt(0);
             QueueInput();
             UpdateDesiredInput();
@@ -213,32 +214,26 @@ namespace Healing
             if (0 <= chosenDirectionalInput && chosenDirectionalInput <= 2)
             {
                 //quarter circle forward
-                Debug.Log("quarter circle forward");
                 futureDirectionalInputs.Add(InputDirections.quarterForward);
-
             }
             else if (3 <= chosenDirectionalInput && chosenDirectionalInput <= 5)
             {
                 //quarter circle backwards
-                Debug.Log("quarter circle backwards");
                 futureDirectionalInputs.Add(InputDirections.quarterBackward);
             }
             else if (6 <= chosenDirectionalInput && chosenDirectionalInput <= 7)
             {
                 //over circle forwards
-                Debug.Log("over circle forwards");
                 futureDirectionalInputs.Add(InputDirections.overForward);
             }
             else if (8 <= chosenDirectionalInput && chosenDirectionalInput <= 9)
             {
                 //over circle backwards
-                Debug.Log("over circle backwards");
                 futureDirectionalInputs.Add(InputDirections.overBackward);
             }
             else if (10 <= chosenDirectionalInput && chosenDirectionalInput <= 11)
             {
                 //zig zag forwards
-                Debug.Log("zig zag forwards");
                 futureDirectionalInputs.Add(InputDirections.zigForward);
             }
             else if (12 <= chosenDirectionalInput && chosenDirectionalInput <= 13)

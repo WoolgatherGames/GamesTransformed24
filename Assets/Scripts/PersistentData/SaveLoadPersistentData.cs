@@ -37,6 +37,16 @@ namespace GameData
             }
         }
 
+        public static void DestroyData(string dataID)
+        {
+            VerifyData();
+            if (savedData.ContainsKey(dataID))
+            {
+                savedData.Remove(dataID);
+            }
+
+        }
+
 
         #region LegacyScriptableObjectSystem
         //static PersistentData data;
@@ -92,10 +102,98 @@ namespace GameData
             time = _time;
         }
     }
-    public class Patient : DataChunk
+    public class PatientData : DataChunk
     {
         //save location, healing progress and time
-        private float healingProgress;
+        private float currentHealingProgress;
+        private float maxHealingProgress;
+        private float healingRate;
+        private float lastHealTimeStamp;
+        private float nextConsumptionTimeStamp;
+        private Healing.Patient.PatientProblems medicalProblem;
+
+        public float CurrentHealingProgress { get { return currentHealingProgress; } }
+        public float MaxHealingProgress { get { return maxHealingProgress; } }
+        public float HealingRate { get {  return healingRate; } }
+        public float LastHealTimeStamp { get {  return lastHealTimeStamp; } }
+        public float NextConsumptionTimeStamp { get { return  nextConsumptionTimeStamp; } }
+        public Healing.Patient.PatientProblems MyProblem { get { return medicalProblem; } }
+
+        public PatientData(float currentHealingProgress, float maxHealingProgress, float healingRate, float lastHealTimeStamp, float newConsumptionTimeStamp, Healing.Patient.PatientProblems medicalProblem)
+        {
+            this.currentHealingProgress = currentHealingProgress;
+            this.maxHealingProgress = maxHealingProgress;
+            this.healingRate = healingRate;
+            this.lastHealTimeStamp = lastHealTimeStamp;
+            this.nextConsumptionTimeStamp = newConsumptionTimeStamp;
+            this.medicalProblem = medicalProblem;
+        }
+    }
+
+    public class HospitalInventoryData : DataChunk
+    {
+        int flowerCount;
+        public int FlowerCount { get { return flowerCount; } }
+
+        int treeSapCount;
+        public int TreeSapCount { get { return treeSapCount; } }
+
+        int feathersCount;
+        public int FeathersCount { get { return feathersCount; } }
+
+        int mushroomCount;
+        public int MushroomCount { get { return mushroomCount; } }
+
+        int conchShellCount;
+        public int ConchShellCount { get { return conchShellCount; } }
+
+        public HospitalInventoryData(int flowerCount, int treeSapCount, int feathersCount, int mushroomCount, int conchShellCount)
+        {
+            this.flowerCount = flowerCount;
+            this.treeSapCount = treeSapCount;
+            this.feathersCount = feathersCount;
+            this.mushroomCount = mushroomCount;
+            this.conchShellCount = conchShellCount;
+        }
+    }
+
+    public class FlowerPotData : DataChunk
+    {
+        float growthStartTime;
+        bool isPlanted;
+
+        public float GrowthStart { get { return growthStartTime; } }
+        public bool IsPlanted { get { return isPlanted; } }
+
+        public FlowerPotData(float growthStartTime, bool isPlanted)
+        { 
+            this.growthStartTime = growthStartTime; this.isPlanted = isPlanted;
+        }
+    }
+
+    public class ForestResourceManagerData : DataChunk
+    {
+        int numberOfFlowers;
+        public int NumberOfFlowers { get { return numberOfFlowers; } }
+        int numberOfMushrooms;
+        public int NumberOfMushrooms { get { return numberOfMushrooms; } }
+        int numberOfFeathers;
+        public int NumberOfFeathers { get { return numberOfFeathers; } }
+
+        float spawnPlantResourcesTimeStamp;
+        public float SpawnPlantResourcesTimeStamp { get { return spawnPlantResourcesTimeStamp; } }
+        float spawnAirTimeStamp;
+        public float SpawnAirTimeStamp { get { return spawnAirTimeStamp; } }
+
+
+        public ForestResourceManagerData(int numberOfFlowers, int numberOfMushrooms, int numberOfFeathers, float spawnPlantResourcesTimeStamp, float spawnAirTimeStamp)
+        {
+            this.numberOfFlowers = numberOfFlowers;
+            this.numberOfMushrooms = numberOfMushrooms;
+            this.numberOfFeathers = numberOfFeathers;
+            this.spawnPlantResourcesTimeStamp = spawnPlantResourcesTimeStamp;
+            this.spawnAirTimeStamp = spawnAirTimeStamp;
+        }
     }
 }
 

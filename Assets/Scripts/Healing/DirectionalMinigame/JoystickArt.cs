@@ -10,17 +10,17 @@ namespace Healing
     {
         [SerializeField] Sprite[] joystickSprites;
 
-        SpriteRenderer me;
-
-        private void Start()
-        {
-            me = GetComponent<SpriteRenderer>();
-        }
+        SpriteRenderer my;
 
         public void UpdateJoystickSprite(int notation)
         {
             notation -= 1;
-            me.sprite = joystickSprites[notation];
+            if (my == null)
+            {
+                my = GetComponent<SpriteRenderer>();
+            }
+
+            my.sprite = joystickSprites[notation];
         }
     }
 }
