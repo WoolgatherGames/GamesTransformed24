@@ -360,5 +360,11 @@ namespace Healing
                 return 5;
             }
         }
+
+        private void OnDrawGizmos()
+        {
+            //preview the size of the minigame camera 
+            Gizmos.DrawWireCube(new Vector3(0f, 0f, 0f), new Vector3(19f, 10f, 0f));
+        }
     }
 }

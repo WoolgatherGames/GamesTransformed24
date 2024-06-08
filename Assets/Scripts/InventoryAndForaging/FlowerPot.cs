@@ -1,10 +1,11 @@
 using GameData;
 using Inventory;
+using Movement;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-public class FlowerPot : HoldData, IInteractable
+
+public class FlowerPot : HoldData, IInteractable, IProgressBar
 {
     float growthStartTime;
     bool hasAFlowerPlanted;
@@ -54,7 +55,13 @@ public class FlowerPot : HoldData, IInteractable
                 flowerRenderer.sprite = ready; break;
         }
     }
-
+    [SerializeField] private Transform interactionPromptLocation;
+    [SerializeField] ProgressBarPrompt progressBar;
+    public Vector3 ReturnPositionForPromptIndicator()
+    {
+        progressBar.DisplayProgressBar(this);
+        return interactionPromptLocation.position;
+    }
     public void Interact()
     {
         GrowthState growthState = DetermineGrowthState();
@@ -73,6 +80,67 @@ public class FlowerPot : HoldData, IInteractable
         UpdateSprite();
     }
 
+    /*[SerializeField] GameObject progressBarParent;
+    [SerializeField] Image progressBarFill;
+    [SerializeField] Color progressBarUncompleteColour;
+    [SerializeField] Color progressBarCompletedColour;
+    bool updateProgressBar;
+    void DisplayProgressBar()
+    {
+        //performed when this object is interactable
+        PlayerController.OnInteractionTargetChange += HideProgressBar;
+
+        //progressBarParent.SetActive(true);
+        updateProgressBar = true;
+        UpdateProgressBar();
+    }
+    void HideProgressBar()
+    {
+        PlayerController.OnInteractionTargetChange -= HideProgressBar;
+
+        //progressBarParent.SetActive(false);
+        updateProgressBar = false;
+    }
+    private void OnDisable()
+    {
+        PlayerController.OnInteractionTargetChange -= HideProgressBar;
+    }
+    void UpdateProgressBar()
+    {
+        //show progress towards flower
+
+        if (!hasAFlowerPlanted)
+        {
+            HideProgressBar();
+        }
+
+        float growthTime = Time.time - growthStartTime;
+        float fillAmount = growthTime / totalFlowerGrowthTime;
+        progressBarFill.fillAmount = fillAmount;
+
+        if (fillAmount < 1f)
+        {
+            progressBarFill.color = progressBarUncompleteColour;
+        }
+        else
+        {
+            progressBarFill.color = progressBarCompletedColour;
+        }
+    }*/
+
+    public float GetTimerFillAmount()
+    {
+        if (!hasAFlowerPlanted)
+        {
+            return 0f;
+        }
+
+        float growthTime = Time.time - growthStartTime;
+        float fillAmount = growthTime / totalFlowerGrowthTime;
+        
+        return fillAmount;
+    }
+
     void Plant()
     {
         growthStartTime = Time.time;
@@ -84,10 +152,12 @@ public class FlowerPot : HoldData, IInteractable
         hasAFlowerPlanted = false;
 
         //BALANCE
-        int flowersCollected = Random.Range(1, 4);
+        int flowersCollected = Random.Range(2, 6);
         PlayerInventory.CollectResource(ResourceTypes.flower, flowersCollected);
     }
 
+    //balance
+    float totalFlowerGrowthTime { get { return 180f; } }
 
     GrowthState DetermineGrowthState()
     {
@@ -103,12 +173,12 @@ public class FlowerPot : HoldData, IInteractable
             //flower hasnt been planted
             return GrowthState.emptyPot;
         }
-        else if (growthTime <= 30f)
+        else if (growthTime <= totalFlowerGrowthTime * 0.5f)
         {
             //flower has just been planted. its small
             return GrowthState.baby;
         }
-        else if (growthTime <= 180f)
+        else if (growthTime <= totalFlowerGrowthTime)
         {
             //flower is still growing. its bigger
             return GrowthState.growing;

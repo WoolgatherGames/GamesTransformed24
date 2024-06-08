@@ -11,12 +11,12 @@ TagManager:
   - 
   - Water
   - UI
+  - Player
   - 
   - 
   - 
   - 
-  - 
-  - 
+  - Minimap Layer
   - 
   - 
   - 
@@ -38,7 +38,7 @@ TagManager:
   - 
   - 
   m_SortingLayers:
-  - name: Tilemap
+  - name: Tilemap Background
     uniqueID: 2471528963
     locked: 0
   - name: Default
@@ -49,4 +49,7 @@ TagManager:
     locked: 0
   - name: Tall
     uniqueID: 1043698481
+    locked: 0
+  - name: UI
+    uniqueID: 2812081961
     locked: 0

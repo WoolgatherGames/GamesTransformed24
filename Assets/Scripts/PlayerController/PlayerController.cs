@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using Inventory;
 using Foraging;
 
 namespace Movement
@@ -14,6 +13,10 @@ namespace Movement
 
         PlayerInput playerInput;
         Rigidbody2D rb;
+
+        [SerializeField] GameObject InventoryCanvas;
+
+        [SerializeField] Transform InteractablePrompt;
 
         private void Awake()
         {
@@ -31,6 +34,8 @@ namespace Movement
             this.transform.SetParent(null);
             disablePlayerInput = false;
             rb = GetComponent<Rigidbody2D>();
+            InventoryCanvas.SetActive(true);
+            InteractablePrompt.gameObject.SetActive(false);
         }
 
 
@@ -70,10 +75,12 @@ namespace Movement
             }
 
             disablePlayerInput = true;
+            InventoryCanvas.SetActive(false);
         }
         public void EnableCharacterController()
         {
             disablePlayerInput = false;
+            InventoryCanvas.SetActive(true);
         }
         public void SitInBuggy(Transform BuggySeat)
         {
@@ -112,7 +119,11 @@ namespace Movement
 
         [SerializeField] float interactionCastDistance;
         [SerializeField] Transform interactionOrigin;
+        [SerializeField] LayerMask interactionRaycastLayers;
         IInteractable closestInteractable;
+
+        public delegate void InteractionTargetChanged();
+        public static event InteractionTargetChanged OnInteractionTargetChange;
         void CheckForInteractions()
         {
             if (disablePlayerInput) { return; }
@@ -120,14 +131,27 @@ namespace Movement
             RaycastHit2D[] hits = Physics2D.CircleCastAll(interactionOrigin.position, interactionCastDistance, Vector2.up, 0f);
             foreach (RaycastHit2D hit in hits)
             {
-                if (hit.collider.GetComponent<IInteractable>() != null)
+                //check if it has line of sight to the player (so you cant interact through walls)
+                Vector3 directionVector = hit.transform.position - interactionOrigin.position;
+                RaycastHit2D doubleCheckHit = Physics2D.Raycast(interactionOrigin.position, directionVector.normalized, interactionCastDistance, interactionRaycastLayers);
+                
+                if (doubleCheckHit.collider != null)
                 {
-                    closestInteractable = hit.collider.GetComponent<IInteractable>();
-                    //show an object here to say "press [] to interact"
-                    return;//stop doing the loop, we've found an interactable
+                    if (doubleCheckHit.collider.GetComponent<IInteractable>() != null)
+                    {
+                        closestInteractable = doubleCheckHit.collider.GetComponent<IInteractable>();
+                        //show an object here to say "press [] to interact"
+                        InteractablePrompt.gameObject.SetActive(true);
+                        InteractablePrompt.position = closestInteractable.ReturnPositionForPromptIndicator();
+                        return;//stop doing the loop, we've found an interactable
+                    }
                 }
             }
+
+            if (closestInteractable != null) { OnInteractionTargetChange?.Invoke(); }
+
             closestInteractable = null;//we made it out the loop without finding anything
+            InteractablePrompt.gameObject.SetActive(false);
         }
         void OnInteract(InputAction.CallbackContext context)
         {
@@ -135,7 +159,9 @@ namespace Movement
 
             if (disablePlayerInput) { return; }
             CheckForInteractions();
+
             closestInteractable?.Interact();
+            InteractablePrompt.gameObject.SetActive(false);
         }
 
         [SerializeField] Transform colliderPosition;
@@ -156,7 +182,7 @@ namespace Movement
                 {
                     //move the hit object towards the players collider (and for
                     Vector3 directionVector = hit.collider.transform.position - colliderPosition.position;
-                    hit.collider.transform.position -= directionVector.normalized * Time.deltaTime * 5f;
+                    hit.collider.transform.position -= directionVector.normalized * Time.deltaTime * 7f;//speed of pull
 
                     if (directionVector.sqrMagnitude < Mathf.Pow((pickupDistance * 0.1f), 2))
                     {

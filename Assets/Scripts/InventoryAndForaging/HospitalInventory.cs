@@ -43,6 +43,19 @@ namespace Healing
         int conchShellCount;
         public int ConchShellCount { get { return conchShellCount; } }
 
+        public void DepositAllResources()
+        {
+            flowerCount += PlayerInventory.FlowerCount;
+            treeSapCount += PlayerInventory.TreeSapCount;
+            feathersCount += PlayerInventory.FeathersCount;
+            mushroomCount += PlayerInventory.MushroomCount;
+            conchShellCount += PlayerInventory.ConchShellCount;
+
+            PlayerInventory.EmptyResources();
+
+            Debug.Log("flowers: " + flowerCount + ", Tree Sap: " + treeSapCount + ", Feathers: " + feathersCount + ", Mushrooms: " + mushroomCount + ", Conch Shell: " + conchShellCount);
+        }
+
         public bool PatientConsumeResource(ResourceTypes[] consumeResources, int[] consumeCount)
         {
             ///check if the resources CAN be consumed

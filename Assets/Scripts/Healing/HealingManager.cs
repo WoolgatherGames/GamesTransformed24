@@ -1,3 +1,4 @@
+using Inventory;
 using Movement;
 using System.Collections;
 using System.Collections.Generic;
@@ -45,7 +46,26 @@ namespace Healing
             currentPatient = patient;
             healingMinigameActive = true;
 
-            ShowHealingUI();
+            //this is so fuckin messy i hate it aaa
+            string problemName = "?";
+            ResourceTypes[] requiredResources = patient.ReturnRequiredResources();
+            //ResourceTypes requiredResourceOne = ResourceTypes.none;
+            //ResourceTypes requiredResourceTwo = ResourceTypes.none;
+            switch (patient.MyProblem)
+            {
+                case Patient.PatientProblems.BrokenBone:
+                    problemName = "Broken Bone"; break;
+                case Patient.PatientProblems.Hemorrhage:
+                    problemName = "Haemorrhage"; break;
+                case Patient.PatientProblems.OpenWound:
+                    problemName = "Open Wound"; break;
+                case Patient.PatientProblems.Infection:
+                    problemName = "Infection"; break;
+                case Patient.PatientProblems.Concussion:
+                    problemName = "Concussion"; break;
+            }
+
+            ShowHealingUI(problemName, requiredResources[0], requiredResources[1]);
 
             //testing 
             StartDirectionalMinigame();
@@ -108,19 +128,15 @@ namespace Healing
                 preventDoubleClick -= Time.deltaTime;
             }
 
+            //moving this to the patient script
             if (currentPatient != null)
             {
                 timeSinceUpdatedPatientHealing += Time.deltaTime;
-                if (timeSinceUpdatedPatientHealing > 1f)
+                if (timeSinceUpdatedPatientHealing > 0.3f)
                 {
                     currentPatient.UpdateHealingProgress();
                 }
             }
-        }
-
-        void DestroyMinigame()
-        {
-
         }
 
         void StartDirectionalMinigame()
@@ -137,10 +153,49 @@ namespace Healing
         #region UI
 
         [SerializeField] GameObject healingUI;
-        void ShowHealingUI()
+
+        [SerializeField] TMP_Text problemText;
+        [SerializeField] Image resourceOne;
+        [SerializeField] Image resourceTwo;
+
+        [SerializeField] Sprite flowerSprite;
+        [SerializeField] Sprite mushroomSprite;
+        [SerializeField] Sprite featherSprite;
+        [SerializeField] Sprite treeSapSprite;
+        [SerializeField] Sprite conchShellSprite;
+        void ShowHealingUI(string problemName, ResourceTypes resourceTypeOne, ResourceTypes resourceTypeTwo)
         {
             healingUI.SetActive(true);
             dischargeButton.SetActive(false);
+
+            problemText.text = "Medical Problem:\n<size=125%>" + problemName + "</size>\nResources Required:";
+
+            switch (resourceTypeOne)
+            {
+                case ResourceTypes.flower:
+                    resourceOne.sprite = flowerSprite; break;
+                case ResourceTypes.mushroom:
+                    resourceOne.sprite = mushroomSprite; break;
+                case ResourceTypes.feathers:
+                    resourceOne.sprite = featherSprite; break;
+                case ResourceTypes.treeSap:
+                    resourceOne.sprite = treeSapSprite; break;
+                case ResourceTypes.conchShell:
+                    resourceOne.sprite = conchShellSprite; break;
+            }
+            switch (resourceTypeTwo)
+            {
+                case ResourceTypes.flower:
+                    resourceTwo.sprite = flowerSprite; break;
+                case ResourceTypes.mushroom:
+                    resourceTwo.sprite = mushroomSprite; break;
+                case ResourceTypes.feathers:
+                    resourceTwo.sprite = featherSprite; break;
+                case ResourceTypes.treeSap:
+                    resourceTwo.sprite = treeSapSprite; break;
+                case ResourceTypes.conchShell:
+                    resourceTwo.sprite = conchShellSprite; break;
+            }
         }
         void HideHealingUI()
         {

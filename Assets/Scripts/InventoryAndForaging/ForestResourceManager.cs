@@ -42,10 +42,10 @@ namespace Foraging
             CalculateQuadVolume();
 
             //Spawn objects here
-            AddPlantResourcesToMapPool();
-            SpawnAllPlantResources();
+            AddForageableResourcesToMapPool();
 
             CheckAirplanes();
+            SpawnAllResourcesOnLoad();
         }
 
 
@@ -55,6 +55,14 @@ namespace Foraging
             CheckAirplanes();
         }
 
+
+
+
+
+
+
+
+        #region SpawnAreas
 
         [System.Serializable]
         class SpawnQuad
@@ -75,28 +83,63 @@ namespace Foraging
             }
         }
 
+
+        [SerializeField] GameObject mushroomPrefab;
         [SerializeField, Tooltip("A list of 2D squares that enemies can spawn within. There is an even chance of spawning at any position within the total size of the quads. Overlapping quads will increase the chance of an enemy spawning in that position")]
-        SpawnQuad[] spawnBoxes;
-        float totalQuadsVolume;
+        SpawnQuad[] mushroomSpawnBoxes;
+        float mushroomQuadsVolume;
+
+        [Space(5)]
+        [SerializeField] GameObject flowerPrefab;
+        [SerializeField] SpawnQuad[] flowerSpawnBoxes;
+        float flowerQuadsVolume;
+
+        [Space(5)]
+        [SerializeField] GameObject featherPrefab;
+        [SerializeField] SpawnQuad[] featherSpawnBoxes;
+        float featherQuadsVolume;
+
+        [Space(5)]
+        [SerializeField] GameObject conchShellPrefab;
+        [SerializeField] SpawnQuad[] conchShellBoxes;
+        float shellQuadsVolume;
 
         private void CalculateQuadVolume()
         {
-            totalQuadsVolume = 0f;
-            foreach (SpawnQuad box in spawnBoxes)
+            mushroomQuadsVolume = 0f;
+            foreach (SpawnQuad box in mushroomSpawnBoxes)
             {
-                totalQuadsVolume += box.quadVolume;
+                mushroomQuadsVolume += box.quadVolume;
+            }
+
+            flowerQuadsVolume = 0f;
+            foreach (SpawnQuad box in flowerSpawnBoxes)
+            {
+                flowerQuadsVolume += box.quadVolume;
+            }
+
+            featherQuadsVolume = 0f;
+            foreach (SpawnQuad box in featherSpawnBoxes)
+            {
+                featherQuadsVolume += box.quadVolume;
+            }
+
+            shellQuadsVolume = 0f;
+            foreach (SpawnQuad box in conchShellBoxes)
+            {
+                shellQuadsVolume += box.quadVolume;
             }
         }
 
-        Vector3 CalculateSpawnPosition()
+        Vector3 CalculateMushroomSpawnPosition()
         {
-            float boxToSpawnInByVolume = Random.Range(0f, totalQuadsVolume);
+            float boxToSpawnInByVolume = Random.Range(0f, mushroomQuadsVolume);
             //Debug.Log(boxToSpawnInByVolume);
             float countedBoxVolume = 0f;
             int quadToSpawnIn = 0;
-            for (int i = 0; i < spawnBoxes.Length; i++)
+            for (int i = 0; i < mushroomSpawnBoxes.Length; i++)
             {
-                countedBoxVolume += spawnBoxes[i].quadVolume;
+                countedBoxVolume += mushroomSpawnBoxes[i].quadVolume;
                 if (countedBoxVolume >= boxToSpawnInByVolume)
                 {
                     quadToSpawnIn = i;
@@ -104,11 +147,103 @@ namespace Foraging
                 }
             }
 
-            float xSpawnPos = Random.Range(spawnBoxes[quadToSpawnIn].leftPosition, spawnBoxes[quadToSpawnIn].rightPosition);
-            float ySpawnPos = Random.Range(spawnBoxes[quadToSpawnIn].bottomPosition, spawnBoxes[quadToSpawnIn].topPosition);
+            float xSpawnPos = Random.Range(mushroomSpawnBoxes[quadToSpawnIn].leftPosition, mushroomSpawnBoxes[quadToSpawnIn].rightPosition);
+            float ySpawnPos = Random.Range(mushroomSpawnBoxes[quadToSpawnIn].bottomPosition, mushroomSpawnBoxes[quadToSpawnIn].topPosition);
             float zSpawnPos = 0f;
 
             return new Vector3(xSpawnPos, ySpawnPos, zSpawnPos);
+        }
+
+        Vector3 CalculateFlowerSpawnPosition()
+        {
+            float boxToSpawnInByVolume = Random.Range(0f, flowerQuadsVolume);
+            //Debug.Log(boxToSpawnInByVolume);
+            float countedBoxVolume = 0f;
+            int quadToSpawnIn = 0;
+            for (int i = 0; i < flowerSpawnBoxes.Length; i++)
+            {
+                countedBoxVolume += flowerSpawnBoxes[i].quadVolume;
+                if (countedBoxVolume >= boxToSpawnInByVolume)
+                {
+                    quadToSpawnIn = i;
+                    break;
+                }
+            }
+
+            float xSpawnPos = Random.Range(flowerSpawnBoxes[quadToSpawnIn].leftPosition, flowerSpawnBoxes[quadToSpawnIn].rightPosition);
+            float ySpawnPos = Random.Range(flowerSpawnBoxes[quadToSpawnIn].bottomPosition, flowerSpawnBoxes[quadToSpawnIn].topPosition);
+            float zSpawnPos = 0f;
+
+            return new Vector3(xSpawnPos, ySpawnPos, zSpawnPos);
+        }
+
+        Vector3 CalculateFeatherSpawnPosition()
+        {
+            float boxToSpawnInByVolume = Random.Range(0f, featherQuadsVolume);
+            //Debug.Log(boxToSpawnInByVolume);
+            float countedBoxVolume = 0f;
+            int quadToSpawnIn = 0;
+            for (int i = 0; i < featherSpawnBoxes.Length; i++)
+            {
+                countedBoxVolume += featherSpawnBoxes[i].quadVolume;
+                if (countedBoxVolume >= boxToSpawnInByVolume)
+                {
+                    quadToSpawnIn = i;
+                    break;
+                }
+            }
+
+            float xSpawnPos = Random.Range(featherSpawnBoxes[quadToSpawnIn].leftPosition, featherSpawnBoxes[quadToSpawnIn].rightPosition);
+            float ySpawnPos = Random.Range(featherSpawnBoxes[quadToSpawnIn].bottomPosition, featherSpawnBoxes[quadToSpawnIn].topPosition);
+            float zSpawnPos = 0f;
+
+            return new Vector3(xSpawnPos, ySpawnPos, zSpawnPos);
+        }
+
+        Vector3 CalculateShellSpawnPosition()
+        {
+            float boxToSpawnInByVolume = Random.Range(0f, shellQuadsVolume);
+            //Debug.Log(boxToSpawnInByVolume);
+            float countedBoxVolume = 0f;
+            int quadToSpawnIn = 0;
+            for (int i = 0; i < conchShellBoxes.Length; i++)
+            {
+                countedBoxVolume += conchShellBoxes[i].quadVolume;
+                if (countedBoxVolume >= boxToSpawnInByVolume)
+                {
+                    quadToSpawnIn = i;
+                    break;
+                }
+            }
+
+            float xSpawnPos = Random.Range(conchShellBoxes[quadToSpawnIn].leftPosition, conchShellBoxes[quadToSpawnIn].rightPosition);
+            float ySpawnPos = Random.Range(conchShellBoxes[quadToSpawnIn].bottomPosition, conchShellBoxes[quadToSpawnIn].topPosition);
+            float zSpawnPos = 0f;
+
+            return new Vector3(xSpawnPos, ySpawnPos, zSpawnPos);
+        }
+
+        #endregion
+
+        void SpawnAllResourcesOnLoad()
+        {
+            //flowers
+            for (int i = 0; i < flowersInForest; i++)
+            {
+                Instantiate(flowerPrefab, CalculateFlowerSpawnPosition(), Quaternion.identity);
+            }
+            for (int i = 0; i < mushroomInForest; i++)
+            {
+                Instantiate(mushroomPrefab, CalculateMushroomSpawnPosition(), Quaternion.identity);
+            }
+            for (int i = 0; i < feathersInForest; i++)
+            {
+                Instantiate(featherPrefab, CalculateFeatherSpawnPosition(), Quaternion.identity);
+            }
+            for (int i = 0; i < conchShellsInForest; i++)
+            {
+                Instantiate(conchShellPrefab, CalculateShellSpawnPosition(), Quaternion.identity);
+            }
         }
 
         //mushrooms and flowers
@@ -117,40 +252,28 @@ namespace Foraging
         int feathersInForest;
         float lastSpawnResourcesTimeStamp;
 
-        void AddPlantResourcesToMapPool()
+        void AddForageableResourcesToMapPool()
         {
-            float timeBetweenPlantResources = 10f;
-            if (lastSpawnResourcesTimeStamp + timeBetweenPlantResources > Time.time)
+            //adds flowers + mushrooms + conch shells 
+            //feathers are handled seperately. 
+
+            float timeBetweenForageableResources = 10f;
+            if (lastSpawnResourcesTimeStamp + timeBetweenForageableResources > Time.time)
             {
-                Debug.Log(lastSpawnResourcesTimeStamp + timeBetweenPlantResources + ":" + Time.time);
                 return;
             }
 
             //dont spawn objects whilst the forest is open, the player should go back to the hospital before they spawn
             //this function adds a random number of flowers, feathers and mushrooms to the pool every X seconds, where X is whatever update is set too (currently 10)
 
-            int multiplier = Mathf.RoundToInt((Time.time - lastSpawnResourcesTimeStamp) / timeBetweenPlantResources);
+            int multiplier = Mathf.RoundToInt((Time.time - lastSpawnResourcesTimeStamp) / timeBetweenForageableResources);
 
             lastSpawnResourcesTimeStamp = Time.time;
-            IncreaseNumberOfFlowers(Random.Range(2, 4) * multiplier);
-            IncreaseNumberOfMushrooms(Random.Range(2, 9) * multiplier);//how many spawn every 10 seconds
+            IncreaseNumberOfFlowers(Random.Range(2, 11) * multiplier);
+            IncreaseNumberOfMushrooms(Random.Range(2, 15) * multiplier);//how many spawn every 10 seconds
+            IncreaseNumberOfShells(Random.Range(1, 5) * multiplier);
         }
 
-        [SerializeField] GameObject flowerPrefab;
-        [SerializeField] GameObject mushroomPrefab;
-
-        void SpawnAllPlantResources()
-        {
-            //flowers
-            for (int i = 0; i < flowersInForest; i++)
-            {
-                Instantiate(flowerPrefab, CalculateSpawnPosition(), Quaternion.identity);
-            }
-            for (int i = 0; i < mushroomInForest; i++)
-            {
-                Instantiate(mushroomPrefab, CalculateSpawnPosition(), Quaternion.identity);
-            }
-        }
 
         void IncreaseNumberOfFlowers(int numberSpawned)
         {
@@ -162,6 +285,10 @@ namespace Foraging
                 flowersInForest = maximumFlowersAllowed;
             }
         }
+        public void RemoveFlower()
+        {
+            flowersInForest--;
+        }
         void IncreaseNumberOfMushrooms(int numberSpawned)
         {
             mushroomInForest += numberSpawned;
@@ -172,10 +299,29 @@ namespace Foraging
                 mushroomInForest = maximumAllowed;
             }
         }
+        public void RemoveMushroom()
+        {
+            mushroomInForest--;
+        }
+
+        int conchShellsInForest;
+        void IncreaseNumberOfShells(int add)
+        {
+            conchShellsInForest += add;
+            int maximumAllowed = 35;
+            if (conchShellsInForest > maximumAllowed)
+            {
+                conchShellsInForest = maximumAllowed;
+            }
+        }
+        public void RemoveConchShell()
+        {
+            conchShellsInForest--;
+        }
 
 
         //air support
-        [SerializeField] GameObject featherPrefab;
+
 
         float airArrivalMostRecentTimeStamp;
         bool featherDropAnimationActive;
@@ -212,14 +358,16 @@ namespace Foraging
             //oaef stagger the feather spawn over a few seconds instead of blasting it all at once
             Debug.Log("im spawning");
 
-            int numberSpawned = Random.Range(30, 50);
+            int numberSpawned = Random.Range(25, 40);
             numberSpawned = IncreaseNumberOfFeathers(numberSpawned);
 
             for (int i = 0; i < numberSpawned; i++)
             {
-                Instantiate(featherPrefab, CalculateSpawnPosition(), Quaternion.identity);
+                Instantiate(featherPrefab, CalculateMushroomSpawnPosition(), Quaternion.identity);
             }
         }
+
+        
 
         int IncreaseNumberOfFeathers(int numberSpawned)
         {
@@ -232,10 +380,18 @@ namespace Foraging
 
             return numberSpawned;
         }
+        public void RemoveFeather()
+        {
+            feathersInForest--;
+        }
+
+
+
+
 
         protected override DataChunk SaveData()
         {
-            return new ForestResourceManagerData(flowersInForest, mushroomInForest, feathersInForest, lastSpawnResourcesTimeStamp, airArrivalMostRecentTimeStamp);
+            return new ForestResourceManagerData(flowersInForest, mushroomInForest, feathersInForest, conchShellsInForest, lastSpawnResourcesTimeStamp, airArrivalMostRecentTimeStamp);
         }
 
         protected override void LoadData(DataChunk recievedData)
@@ -250,16 +406,72 @@ namespace Foraging
                 lastSpawnResourcesTimeStamp = data.SpawnPlantResourcesTimeStamp;
                 airArrivalMostRecentTimeStamp = data.SpawnAirTimeStamp;
             }
+            else
+            {
+                //starting values 
+                flowersInForest = 20;
+                mushroomInForest = 20;
+                feathersInForest = 20;
+                conchShellsInForest = 10;
+
+                lastSpawnResourcesTimeStamp = 0f;
+                airArrivalMostRecentTimeStamp = 0f;
+            }
         }
 
 
 
 
-        private void OnDrawGizmosSelected()
+        private void OnDrawGizmos()
         {
+            Gizmos.color = Color.red;
+
+            foreach (SpawnQuad box in mushroomSpawnBoxes)
+            {
+                Vector3 topLeftPos = new Vector3(box.leftPosition, box.topPosition, 0f);
+                Vector3 topRightPos = new Vector3(box.rightPosition, box.topPosition, 0f);
+                Vector3 bottomRightPos = new Vector3(box.rightPosition, box.bottomPosition, 0f);
+                Vector3 bottomLeftPos = new Vector3(box.leftPosition, box.bottomPosition, 0f);
+
+                Gizmos.DrawLine(topLeftPos, topRightPos);
+                Gizmos.DrawLine(topRightPos, bottomRightPos);
+                Gizmos.DrawLine(bottomRightPos, bottomLeftPos);
+                Gizmos.DrawLine(bottomLeftPos, topLeftPos);
+            }
+
             Gizmos.color = Color.yellow;
 
-            foreach (SpawnQuad box in spawnBoxes)
+            foreach (SpawnQuad box in flowerSpawnBoxes)
+            {
+                Vector3 topLeftPos = new Vector3(box.leftPosition, box.topPosition, 0f);
+                Vector3 topRightPos = new Vector3(box.rightPosition, box.topPosition, 0f);
+                Vector3 bottomRightPos = new Vector3(box.rightPosition, box.bottomPosition, 0f);
+                Vector3 bottomLeftPos = new Vector3(box.leftPosition, box.bottomPosition, 0f);
+
+                Gizmos.DrawLine(topLeftPos, topRightPos);
+                Gizmos.DrawLine(topRightPos, bottomRightPos);
+                Gizmos.DrawLine(bottomRightPos, bottomLeftPos);
+                Gizmos.DrawLine(bottomLeftPos, topLeftPos);
+            }
+
+            Gizmos.color = Color.cyan;
+
+            foreach (SpawnQuad box in featherSpawnBoxes)
+            {
+                Vector3 topLeftPos = new Vector3(box.leftPosition, box.topPosition, 0f);
+                Vector3 topRightPos = new Vector3(box.rightPosition, box.topPosition, 0f);
+                Vector3 bottomRightPos = new Vector3(box.rightPosition, box.bottomPosition, 0f);
+                Vector3 bottomLeftPos = new Vector3(box.leftPosition, box.bottomPosition, 0f);
+
+                Gizmos.DrawLine(topLeftPos, topRightPos);
+                Gizmos.DrawLine(topRightPos, bottomRightPos);
+                Gizmos.DrawLine(bottomRightPos, bottomLeftPos);
+                Gizmos.DrawLine(bottomLeftPos, topLeftPos);
+            }
+
+            Gizmos.color = Color.blue;
+
+            foreach (SpawnQuad box in conchShellBoxes)
             {
                 Vector3 topLeftPos = new Vector3(box.leftPosition, box.topPosition, 0f);
                 Vector3 topRightPos = new Vector3(box.rightPosition, box.topPosition, 0f);

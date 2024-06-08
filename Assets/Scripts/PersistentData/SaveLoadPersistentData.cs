@@ -180,19 +180,37 @@ namespace GameData
         int numberOfFeathers;
         public int NumberOfFeathers { get { return numberOfFeathers; } }
 
+        float numberOfShells;
+        public float NumberOfShells { get { return numberOfShells; } }
+
         float spawnPlantResourcesTimeStamp;
         public float SpawnPlantResourcesTimeStamp { get { return spawnPlantResourcesTimeStamp; } }
+
+
+
         float spawnAirTimeStamp;
         public float SpawnAirTimeStamp { get { return spawnAirTimeStamp; } }
 
 
-        public ForestResourceManagerData(int numberOfFlowers, int numberOfMushrooms, int numberOfFeathers, float spawnPlantResourcesTimeStamp, float spawnAirTimeStamp)
+        public ForestResourceManagerData(int numberOfFlowers, int numberOfMushrooms, int numberOfFeathers, int numberOfShells, float spawnPlantResourcesTimeStamp, float spawnAirTimeStamp)
         {
             this.numberOfFlowers = numberOfFlowers;
             this.numberOfMushrooms = numberOfMushrooms;
             this.numberOfFeathers = numberOfFeathers;
             this.spawnPlantResourcesTimeStamp = spawnPlantResourcesTimeStamp;
             this.spawnAirTimeStamp = spawnAirTimeStamp;
+            this.numberOfShells = numberOfShells;
+        }
+    }
+
+    public class BedData : DataChunk
+    {
+        bool hasAPatient;
+        public bool HasAPatient { get { return hasAPatient;} }
+
+        public BedData(bool hasPatient)
+        {
+            hasAPatient = hasPatient;
         }
     }
 }

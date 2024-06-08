@@ -17,7 +17,8 @@ namespace Foraging
         {
             flower,
             feather,
-            mushroom
+            mushroom,
+            conchShell
         }
 
         [SerializeField] WhichAmI resourceType;
@@ -40,11 +41,13 @@ namespace Foraging
             switch (resourceType)
             {
                 case WhichAmI.flower:
-                    PlayerInventory.CollectResource(ResourceTypes.flower, 1); break;
+                    PlayerInventory.CollectResource(ResourceTypes.flower, 1); ForestResourceManager.Instance.RemoveFlower(); break;
                 case WhichAmI.feather:
-                    PlayerInventory.CollectResource(ResourceTypes.feathers, 1); break;
+                    PlayerInventory.CollectResource(ResourceTypes.feathers, 1); ForestResourceManager.Instance.RemoveFeather(); break;
                 case WhichAmI.mushroom:
-                    PlayerInventory.CollectResource(ResourceTypes.mushroom, 1); break;
+                    PlayerInventory.CollectResource(ResourceTypes.mushroom, 1); ForestResourceManager.Instance.RemoveMushroom(); break;
+                case WhichAmI.conchShell:
+                    PlayerInventory.CollectResource(ResourceTypes.conchShell, 1); ForestResourceManager.Instance.RemoveConchShell(); break;
             }
 
 

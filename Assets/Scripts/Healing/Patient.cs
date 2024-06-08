@@ -3,12 +3,19 @@ using GameData;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using Inventory;
+using Movement;
 
 namespace Healing
 {
-    public class Patient : HoldData, IInteractable
+    public class Patient : HoldData
     {
+        //balance values
+        float outOfResourcesCurrentHealingReductionRate { get { return 0.5f; } }
+        float outOfResourcesMaximumHealingReductionRate { get { return 1.5f; } }
+        
+
         public enum PatientProblems
         {
             BrokenBone,
@@ -24,6 +31,12 @@ namespace Healing
             UpdateHealingProgress();
             HealingManager.Instance.OpenHealingMenu(this);
         }
+        /*[SerializeField] private Transform interactionPromptLocation;
+        public Vector3 ReturnPositionForPromptIndicator()
+        {
+            return interactionPromptLocation.position;
+        }*/
+
 
         float maximumHealingProgress;   //how much healing progress can currently be gained (capped at a certain level above current healing progress)
         float currentHealingProgress;   //how much healing progress has been gained
@@ -31,11 +44,10 @@ namespace Healing
         float lastHealTimeStamp;        //the time that current healing progress was last updated (time.time)
 
         PatientProblems myProblem;
+        public PatientProblems MyProblem { get { return myProblem; } }
 
         void AdmitToWard()
         {
-            Debug.Log("Ive been added to the ward");
-
             //becomes a patient the player can heal
 
             //healing rate = randomly decide how much % progres should be made per 60 seconds
@@ -61,6 +73,9 @@ namespace Healing
             }
         }
 
+        public delegate void Discharged();
+        public event Discharged OnDischarged;
+
         public void Discharge()
         {
             //discharge this patient. Delete their data from the healing manager
@@ -69,6 +84,8 @@ namespace Healing
             SaveLoadPersistentData.DestroyData(GetUniqueID());
 
             //Ideally, destroy the patient and spawn a new identical object (that isnt a patient) so it can walk off 
+            OnDischarged?.Invoke();
+
             Destroy(this.gameObject);
         }
 
@@ -88,14 +105,16 @@ namespace Healing
 
         public void UpdateHealingProgress()
         {
-            //ONLY call this when this object is the currently active patient 
-
             float timeDifference = Time.time - lastHealTimeStamp;
             lastHealTimeStamp = Time.time;
             float progressMade = timeDifference * healingRate;
             currentHealingProgress = Mathf.Clamp(currentHealingProgress + progressMade, currentHealingProgress, maximumHealingProgress);
 
-            HealingManager.Instance.UpdateHealthBars(currentHealingProgress, maximumHealingProgress);
+
+            if (HealingManager.Instance.CurrentPatient == this)
+            {
+                HealingManager.Instance.UpdateHealthBars(currentHealingProgress, maximumHealingProgress);
+            }
 
             if (currentHealingProgress >= 100)
             {
@@ -104,11 +123,12 @@ namespace Healing
         }
 
 
-
         void Update()
         {
             ConsumeResources();
         }
+
+        HospitalRoom room;
 
         //float timeStampOfNextConsumptionCheck;
         float timeStampOfLastConsumptionCheck;
@@ -119,9 +139,7 @@ namespace Healing
 
             if (timeStampOfLastConsumptionCheck + timeToNextConsumptionCheck < Time.time)
             {
-
-
-                if (myProblem == PatientProblems.BrokenBone)
+                /*if (myProblem == PatientProblems.BrokenBone)
                 {
                     //broken bone, consume feathers and flowers
                     ResourceTypes[] resources = { ResourceTypes.feathers, ResourceTypes.flower };
@@ -180,6 +198,24 @@ namespace Healing
                         ReduceHealingProgressFromNoResources();
                         return;
                     }
+                }*/
+
+                UpdateHealingProgress();//heal the patient first, so progress is removed fairly (rather than lowering the cap first)
+
+                ResourceTypes[] resources = ReturnRequiredResources();
+                int[] consumedAmount = { 3, 2 };
+
+                
+                if (room == null)
+                {
+                    room = GetComponentInParent<Bed>().Room;
+                }
+                //if (HospitalInventory.Instance.PatientConsumeResource(resources, consumedAmount) == false)
+                if (room.PatientConsumeResource(resources, consumedAmount) == false)
+                {
+                    //there wasnt enough resources. Stop being able to heal
+                    ReduceHealingProgressFromNoResources();
+                    return;
                 }
 
                 //if we reached this part of the code. resources where consumed succesfully so dont check back for another 30 seconds
@@ -187,20 +223,38 @@ namespace Healing
                 timeToNextConsumptionCheck = timePerConsumption;
             }
         }
+        public ResourceTypes[] ReturnRequiredResources()
+        {
+            ResourceTypes requiredResourceOne = ResourceTypes.none;
+            ResourceTypes requiredResourceTwo = ResourceTypes.none;
+            switch (myProblem)
+            {
+                case Patient.PatientProblems.BrokenBone:
+                    requiredResourceOne = ResourceTypes.feathers; requiredResourceTwo = ResourceTypes.flower; break;
+                case Patient.PatientProblems.Hemorrhage:
+                    requiredResourceOne = ResourceTypes.flower; requiredResourceTwo = ResourceTypes.treeSap;break;
+                case Patient.PatientProblems.OpenWound:
+                    requiredResourceOne = ResourceTypes.treeSap; requiredResourceTwo = ResourceTypes.feathers;break;
+                case Patient.PatientProblems.Infection:
+                    requiredResourceOne = ResourceTypes.mushroom; requiredResourceTwo = ResourceTypes.flower; break;
+                case Patient.PatientProblems.Concussion:
+                    requiredResourceOne = ResourceTypes.conchShell; requiredResourceTwo = ResourceTypes.mushroom; break;
+            }
+
+            return new ResourceTypes[] { requiredResourceOne, requiredResourceTwo };
+        }
 
         void ReduceHealingProgressFromNoResources()
         {
-
-
-            float reductionRate = 1.25f;//multiplier of healing rate at which having no resources reduces a persons heal rate (1 = they stop healing but dont lose any progress)
+            //float reductionRate = 0.85f;//multiplier of healing rate at which having no resources reduces a persons heal rate (1 = they stop healing but dont lose any progress)
             //need a different plan than this, as time stamp of next should be the same as time.time
-            float reductionAmount = (Time.time - timeStampOfLastConsumptionCheck) * healingRate * reductionRate;//time passed 
+            float reductionAmount = (Time.time - timeStampOfLastConsumptionCheck) * healingRate;//time passed 
 
             timeStampOfLastConsumptionCheck = Time.time;
             timeToNextConsumptionCheck = 1f;
 
-            currentHealingProgress = Mathf.Clamp(currentHealingProgress - reductionAmount, 0f, maximumHealingProgress);
-            maximumHealingProgress = Mathf.Clamp(maximumHealingProgress - reductionAmount, currentHealingProgress, currentHealingProgress + 40f);//if u change this 40f, you also need to change the 0.4 in the healing managers update health bar function
+            currentHealingProgress = Mathf.Clamp(currentHealingProgress - (reductionAmount * outOfResourcesCurrentHealingReductionRate), 0f, maximumHealingProgress);
+            maximumHealingProgress = Mathf.Clamp(maximumHealingProgress - (reductionAmount * outOfResourcesMaximumHealingReductionRate), currentHealingProgress, currentHealingProgress + 40f);//if u change this 40f, you also need to change the 0.4 in the healing managers update health bar function
             if (maximumHealingProgress > 100f)
             {
                 maximumHealingProgress = 100.1f;
@@ -212,6 +266,37 @@ namespace Healing
                 HealingManager.Instance.UpdateHealthBars(currentHealingProgress, maximumHealingProgress);
             }
 
+
+        }
+
+
+
+        [SerializeField] GameObject progressBarParent;
+        [SerializeField] Image progressBarFill;
+        bool updateProgressBar;
+        void DisplayProgressBar()
+        {
+            //performed when this object is interactable
+            PlayerController.OnInteractionTargetChange += HideProgressBar;
+
+            progressBarParent.SetActive(true);
+            updateProgressBar = true;
+            UpdateProgressBar();
+        }
+        void OnDisable()
+        {
+            PlayerController.OnInteractionTargetChange -= HideProgressBar;
+        }
+        void HideProgressBar()
+        {
+            PlayerController.OnInteractionTargetChange -= HideProgressBar;
+
+            progressBarParent.SetActive(false);
+            updateProgressBar = false;
+        }
+
+        void UpdateProgressBar()
+        {
 
         }
 

@@ -1,4 +1,4 @@
-
+using Cinemachine;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -12,6 +12,11 @@ namespace Movement
         PlayerInput playerInput;
 
         [SerializeField] Transform playerSeat;
+        [SerializeField] GameObject buggyVFXTrail;
+        [SerializeField] Transform buggyVFXSpawnPos;
+
+        //would be good to move camera control to its own script 
+        [SerializeField] CinemachineVirtualCamera virtualCamera;//zoom camera out whilst inside buggy
 
         private void Awake()
         {
@@ -23,9 +28,35 @@ namespace Movement
         {
             rb = GetComponent<Rigidbody2D>();
             rb.isKinematic = true;
+            cameraStartZoom = virtualCamera.m_Lens.OrthographicSize;
+        }
 
-            //testing
-            //StartDriving();
+        float cameraStartZoom;
+        float cameraLerpVal;
+        [SerializeField] float cameraZoomGoal;
+        void Update()
+        {
+            if (virtualCamera != null)
+            {
+                float lerpSpeed = Time.deltaTime * 0.3f;
+                if (playerDriving)
+                {
+                    cameraLerpVal = Mathf.Clamp(cameraLerpVal + lerpSpeed, 0f, 1f);
+                    float newCameraZoom = Mathf.Lerp(cameraStartZoom, cameraZoomGoal, cameraLerpVal);
+                    virtualCamera.m_Lens.OrthographicSize = newCameraZoom;
+                }
+                else if (cameraLerpVal > 0f)
+                {
+                    cameraLerpVal = Mathf.Clamp(cameraLerpVal - (lerpSpeed * 2f), 0f, 1f);
+                    float newCameraZoom = Mathf.Lerp(cameraStartZoom, cameraZoomGoal, cameraLerpVal);
+                    virtualCamera.m_Lens.OrthographicSize = newCameraZoom;
+                }
+            }
+        }
+
+        public Vector3 ReturnPositionForPromptIndicator()
+        {
+            return transform.position + new Vector3(0f, 0.65f, 0f);
         }
 
         public void Interact()
@@ -45,6 +76,7 @@ namespace Movement
             playerDriving = false;
             rb.isKinematic = true;
             rb.velocity = Vector3.zero;
+            rb.angularVelocity = 0;
         }
 
 
@@ -57,6 +89,7 @@ namespace Movement
         }
 
         float accelerationTimer;
+        float VFXSpawnTimer;
         void Movement()
         {
             //add a check to see if player WANTS to go max speed or not
@@ -104,6 +137,20 @@ namespace Movement
 
             rb.AddTorque(turnInput * turnSpeed);
             rb.AddForce(transform.up * totalSpeed);
+
+
+            //VFX
+            if (accelerationTimer > maxAcceleration * 0.1f)
+            {
+                VFXSpawnTimer += Time.fixedDeltaTime * accelerationTimer;
+            }
+            if (VFXSpawnTimer > 1f)//rate at which buggy vfx spawns
+            {
+                Debug.Log("yippee");
+                VFXSpawnTimer = 0f;
+                //Instantiate(buggyVFXTrail, buggyVFXSpawnPos.position, transform.rotation);
+                Instantiate(buggyVFXTrail, buggyVFXSpawnPos);
+            }
         }
 
         private void OnDestroy()

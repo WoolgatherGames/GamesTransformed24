@@ -23,4 +23,10 @@ public class Door : MonoBehaviour, IInteractable
                 SceneManager.LoadScene("Forest"); break;
         }
     }
+
+    [SerializeField] Transform interactionPromptPosition;
+    public Vector3 ReturnPositionForPromptIndicator()
+    {
+        return interactionPromptPosition.position;
+    }
 }
