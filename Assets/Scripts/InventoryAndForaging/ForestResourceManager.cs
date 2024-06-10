@@ -269,8 +269,10 @@ namespace Foraging
             int multiplier = Mathf.RoundToInt((Time.time - lastSpawnResourcesTimeStamp) / timeBetweenForageableResources);
 
             lastSpawnResourcesTimeStamp = Time.time;
-            IncreaseNumberOfFlowers(Random.Range(2, 11) * multiplier);
-            IncreaseNumberOfMushrooms(Random.Range(2, 15) * multiplier);//how many spawn every 10 seconds
+
+            //BALANCE
+            IncreaseNumberOfFlowers(Random.Range(2, 11) * multiplier);  
+            IncreaseNumberOfMushrooms(Random.Range(2, 17) * multiplier);//how many spawn every 10 seconds
             IncreaseNumberOfShells(Random.Range(1, 5) * multiplier);
         }
 
@@ -279,7 +281,7 @@ namespace Foraging
         {
             flowersInForest += numberSpawned;
 
-            int maximumFlowersAllowed = 100;
+            int maximumFlowersAllowed = 150;
             if (flowersInForest > maximumFlowersAllowed)
             {
                 flowersInForest = maximumFlowersAllowed;
@@ -293,7 +295,7 @@ namespace Foraging
         {
             mushroomInForest += numberSpawned;
 
-            int maximumAllowed = 100;
+            int maximumAllowed = 150;
             if (mushroomInForest > maximumAllowed)
             {
                 mushroomInForest = maximumAllowed;

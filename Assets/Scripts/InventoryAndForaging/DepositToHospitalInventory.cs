@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class DepositToHospitalInventory : MonoBehaviour, IInteractable
 {
+    //LEGACY USE DEPOSIT TO HOSPITAL ROOM INSTEAD
     public void Interact()
     {
         HospitalInventory.Instance.DepositAllResources();

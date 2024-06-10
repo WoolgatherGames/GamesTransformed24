@@ -33,7 +33,7 @@ namespace Inventory
         bool playerPressingToDeposit;
         float holdToDepositTimer;
 
-        public void OnDirectional(InputValue input)
+        void OnDirectional(InputValue input)
         {
             if (!isActive) { return; }
             Vector2 direction = input.Get<Vector2>().normalized;

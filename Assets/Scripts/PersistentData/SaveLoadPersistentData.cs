@@ -109,24 +109,36 @@ namespace GameData
         private float maxHealingProgress;
         private float healingRate;
         private float lastHealTimeStamp;
-        private float nextConsumptionTimeStamp;
+        //private float nextConsumptionTimeStamp;
         private Healing.Patient.PatientProblems medicalProblem;
+        PatientProblemDialogue resourceProblem;
+
+        bool patientNeedsResources;
+        int resourceThresholdsMet;
 
         public float CurrentHealingProgress { get { return currentHealingProgress; } }
         public float MaxHealingProgress { get { return maxHealingProgress; } }
         public float HealingRate { get {  return healingRate; } }
         public float LastHealTimeStamp { get {  return lastHealTimeStamp; } }
-        public float NextConsumptionTimeStamp { get { return  nextConsumptionTimeStamp; } }
-        public Healing.Patient.PatientProblems MyProblem { get { return medicalProblem; } }
+        //public float NextConsumptionTimeStamp { get { return  nextConsumptionTimeStamp; } }
 
-        public PatientData(float currentHealingProgress, float maxHealingProgress, float healingRate, float lastHealTimeStamp, float newConsumptionTimeStamp, Healing.Patient.PatientProblems medicalProblem)
+        public Healing.Patient.PatientProblems MedicalProblem { get { return medicalProblem; } }
+        public PatientProblemDialogue ResourceProblem { get { return resourceProblem; } }
+        public bool PatientNeedsResources { get { return patientNeedsResources; } }
+        public int ResourceThresholdsMet { get { return resourceThresholdsMet; } }
+
+        public PatientData(float currentHealingProgress, float maxHealingProgress, float healingRate, float lastHealTimeStamp, Healing.Patient.PatientProblems medicalProblem, PatientProblemDialogue problemDialogue, bool needsResource, int thresholdsmet)
         {
             this.currentHealingProgress = currentHealingProgress;
             this.maxHealingProgress = maxHealingProgress;
             this.healingRate = healingRate;
             this.lastHealTimeStamp = lastHealTimeStamp;
-            this.nextConsumptionTimeStamp = newConsumptionTimeStamp;
+            //this.nextConsumptionTimeStamp = newConsumptionTimeStamp;
             this.medicalProblem = medicalProblem;
+
+            resourceProblem = problemDialogue;
+            patientNeedsResources = needsResource;
+            resourceThresholdsMet = thresholdsmet;
         }
     }
 

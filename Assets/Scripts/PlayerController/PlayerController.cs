@@ -28,7 +28,6 @@ namespace Movement
 
             instance = this;
         }
-
         private void Start()
         {
             this.transform.SetParent(null);
@@ -155,6 +154,7 @@ namespace Movement
         }
         void OnInteract(InputAction.CallbackContext context)
         {
+            if (PauseMenu.Instance.GamePaused) { return; }
             if (playerIsDriving) { StepOutOfBuggy(); return; }
 
             if (disablePlayerInput) { return; }

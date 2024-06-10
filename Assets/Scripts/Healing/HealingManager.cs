@@ -32,6 +32,15 @@ namespace Healing
 
         float preventDoubleClick;
 
+        enum HealingManagerState
+        {
+            inactive,
+            givingResources,
+            minigame
+        }
+        HealingManagerState currentState;
+        //bool healingMinigameActive = false;
+
         public void OpenHealingMenu(Patient patient)
         {
             if (preventDoubleClick > 0f) { return; }
@@ -44,14 +53,13 @@ namespace Healing
             //playerInput.Input.Directional.canceled += OnDirectionChange;
 
             currentPatient = patient;
-            healingMinigameActive = true;
 
             //this is so fuckin messy i hate it aaa
-            string problemName = "?";
+            /*string problemName = "?";
             ResourceTypes[] requiredResources = patient.ReturnRequiredResources();
             //ResourceTypes requiredResourceOne = ResourceTypes.none;
             //ResourceTypes requiredResourceTwo = ResourceTypes.none;
-            switch (patient.MyProblem)
+            switch (patient.MedicalProblem)
             {
                 case Patient.PatientProblems.BrokenBone:
                     problemName = "Broken Bone"; break;
@@ -64,11 +72,25 @@ namespace Healing
                 case Patient.PatientProblems.Concussion:
                     problemName = "Concussion"; break;
             }
+            ShowHealingReqResourceUI(problemName, requiredResources[0], requiredResources[1]);*/
 
-            ShowHealingUI(problemName, requiredResources[0], requiredResources[1]);
+            currentPatient.UpdateHealingProgress();
+            if (currentPatient.CheckIfResourceMenuShouldOpen())
+            {
+                currentState = HealingManagerState.givingResources;
+            }
+            else
+            {
+                currentState = HealingManagerState.minigame;
+            }
 
-            //testing 
-            StartDirectionalMinigame();
+            ShowHealingUI();
+
+
+            if (currentState == HealingManagerState.minigame)
+            {
+                StartDirectionalMinigame();
+            }
         }
 
         void CloseHealingMenu()
@@ -88,27 +110,56 @@ namespace Healing
             //playerInput.Input.Directional.performed -= OnDirectionChange;
             //playerInput.Input.Directional.canceled -= OnDirectionChange;
 
-            healingMinigameActive = false;
+            currentState = HealingManagerState.inactive;
 
             currentPatient = null;
         }
 
-        bool healingMinigameActive = false;
+        void OnDirectional(InputValue input)
+        {
+            Vector2 dir = input.Get<Vector2>();
+
+            if (currentState == HealingManagerState.givingResources)
+            {
+                if (dir.y > 0.8f)
+                {
+                    ChangeSelection(false);
+                }
+                else if (dir.y < -0.8f)
+                {
+                    ChangeSelection(true);
+                }
+            }
+        }
 
         void OnInteract()
         {
-
-            if (healingMinigameActive)
+            if (currentState == HealingManagerState.minigame && patientCanBeDischarged)
             {
-                if (patientCanBeDischarged)
-                {
-                    DischargePatient();
-                }
-                else
-                {
-                    CloseHealingMenu();
-                }
+                DischargePatient();
             }
+            if (currentState == HealingManagerState.givingResources)
+            {
+                ClickButton();
+            }
+        }
+
+        void OnBack()
+        {
+            if (currentState != HealingManagerState.inactive)
+            {
+                CloseHealingMenu();
+            }
+
+        }
+
+
+        [SerializeField] PatientProblemDialogue[] possibleResourceProblems;
+        public PatientProblemDialogue ReturnRandomResourceProblem()
+        {
+            int choice = Random.Range(0, possibleResourceProblems.Length);
+
+            return possibleResourceProblems[choice];
         }
 
         public void MinigameHealPatient(float healingPercentage)
@@ -153,48 +204,26 @@ namespace Healing
         #region UI
 
         [SerializeField] GameObject healingUI;
+        [SerializeField] GameObject minigameUI;
+        [SerializeField] GameObject resourceUI;
 
-        [SerializeField] TMP_Text problemText;
-        [SerializeField] Image resourceOne;
-        [SerializeField] Image resourceTwo;
-
-        [SerializeField] Sprite flowerSprite;
-        [SerializeField] Sprite mushroomSprite;
-        [SerializeField] Sprite featherSprite;
-        [SerializeField] Sprite treeSapSprite;
-        [SerializeField] Sprite conchShellSprite;
-        void ShowHealingUI(string problemName, ResourceTypes resourceTypeOne, ResourceTypes resourceTypeTwo)
+        void ShowHealingUI()
         {
             healingUI.SetActive(true);
+
             dischargeButton.SetActive(false);
+            minigameUI.SetActive(false);
+            resourceUI.SetActive(false);
 
-            problemText.text = "Medical Problem:\n<size=125%>" + problemName + "</size>\nResources Required:";
 
-            switch (resourceTypeOne)
+            switch (currentState)
             {
-                case ResourceTypes.flower:
-                    resourceOne.sprite = flowerSprite; break;
-                case ResourceTypes.mushroom:
-                    resourceOne.sprite = mushroomSprite; break;
-                case ResourceTypes.feathers:
-                    resourceOne.sprite = featherSprite; break;
-                case ResourceTypes.treeSap:
-                    resourceOne.sprite = treeSapSprite; break;
-                case ResourceTypes.conchShell:
-                    resourceOne.sprite = conchShellSprite; break;
-            }
-            switch (resourceTypeTwo)
-            {
-                case ResourceTypes.flower:
-                    resourceTwo.sprite = flowerSprite; break;
-                case ResourceTypes.mushroom:
-                    resourceTwo.sprite = mushroomSprite; break;
-                case ResourceTypes.feathers:
-                    resourceTwo.sprite = featherSprite; break;
-                case ResourceTypes.treeSap:
-                    resourceTwo.sprite = treeSapSprite; break;
-                case ResourceTypes.conchShell:
-                    resourceTwo.sprite = conchShellSprite; break;
+                case HealingManagerState.givingResources:
+                    resourceUI.SetActive(true);
+                    break;
+                case HealingManagerState.minigame:
+                    minigameUI.SetActive(true);
+                    break;
             }
         }
         void HideHealingUI()
@@ -207,27 +236,66 @@ namespace Healing
         [SerializeField] Image maximumHealthAllowed;
         [SerializeField] TMP_Text progressText;
 
-        public void UpdateHealthBars(float currentHealth, float maxHealth)
+        public void UpdateHealthBars(float currentHealth, float maxHealth, Patient patient)
         {
+            if (currentPatient != patient) { return; }
+
             progressText.text = Mathf.RoundToInt(currentHealth).ToString() + "%";
             currentHealthProgressBar.fillAmount = currentHealth / 100;
             maximumHealthProgressBar.fillAmount = maxHealth / 100;
-            maximumHealthAllowed.fillAmount = (currentHealth / 100) + 0.4f;
+            maximumHealthAllowed.fillAmount = (currentHealth / 100) + (Patient.allowedMaximumHealth / 100f);
         }
 
         [SerializeField] GameObject dischargeButton;
         [SerializeField] GameObject closeButton;
         bool patientCanBeDischarged;
-        public void EnableDischargeButton()
+        public void EnableDischargeButton(Patient patient)
         {
+            if (currentPatient != patient) { return; };
+
             closeButton.SetActive(false);
             dischargeButton.SetActive(true);
             patientCanBeDischarged = true;
         }
 
-        #endregion
-    }
 
+
+        //resource UI
+        [SerializeField] RectTransform selectionObject;
+        [System.Serializable]
+        struct NewButton
+        {
+            public RectTransform location;
+            public ResourceTypes resource;
+        }
+
+        [SerializeField] NewButton[] resourceButtons;
+        int selectedButton;
+
+        void ChangeSelection(bool increase)
+        {
+            int change = increase ? 1 : -1;
+            selectedButton += change;
+            selectedButton = Mathf.Clamp(selectedButton, 0, resourceButtons.Length - 1);
+
+
+            selectionObject.anchoredPosition = resourceButtons[selectedButton].location.anchoredPosition;
+        }
+
+        void ClickButton()
+        {
+            if (currentState != HealingManagerState.givingResources) { return; }
+            ResourceTypes resourceChosen = resourceButtons[selectedButton].resource;
+            bool hasResource = PlayerInventory.RemoveResource(resourceChosen);
+            if (hasResource)
+            {
+                currentPatient.ConsumeResources(resourceChosen);
+            }
+
+            #endregion
+        }
+
+    }
 }
 
 

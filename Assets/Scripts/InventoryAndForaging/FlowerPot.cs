@@ -152,7 +152,7 @@ public class FlowerPot : HoldData, IInteractable, IProgressBar
         hasAFlowerPlanted = false;
 
         //BALANCE
-        int flowersCollected = Random.Range(2, 6);
+        int flowersCollected = Random.Range(1, 4);
         PlayerInventory.CollectResource(ResourceTypes.flower, flowersCollected);
     }
 

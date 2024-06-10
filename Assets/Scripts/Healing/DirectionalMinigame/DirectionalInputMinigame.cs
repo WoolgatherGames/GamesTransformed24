@@ -34,7 +34,7 @@ namespace Healing
             UpdateDesiredInput();
         }
 
-        void OnDirectional(InputValue input)
+        public void OnDirectional(InputValue input)
         {
             int direction = Vector2ToNumpadNotation(input.Get<Vector2>());
 
