@@ -89,7 +89,7 @@ namespace Healing
 
             if (currentState == HealingManagerState.minigame)
             {
-                StartDirectionalMinigame();
+                LoadMinigame();
             }
         }
 
@@ -113,6 +113,26 @@ namespace Healing
             currentState = HealingManagerState.inactive;
 
             currentPatient = null;
+        }
+
+        public void LoadMinigame()
+        {
+            currentState = HealingManagerState.minigame;
+            ShowHealingUI();
+
+            switch (currentPatient.MedicalProblem)
+            {
+                case Patient.PatientProblems.BrokenBone:
+                    StartBuggyMinigame(); break;
+                case Patient.PatientProblems.Hemorrhage:
+                    StartBuggyMinigame(); break;
+                case Patient.PatientProblems.Infection:
+                    StartLockpickMinigame(); break;
+                case Patient.PatientProblems.OpenWound:
+                    StartDirectionalMinigame(); break;
+                case Patient.PatientProblems.Concussion:
+                    StartLockpickMinigame(); break;
+            }
         }
 
         void OnDirectional(InputValue input)
@@ -169,6 +189,8 @@ namespace Healing
 
 
         [SerializeField] GameObject inputMinigame;
+        [SerializeField] GameObject lockpickMinigame;
+        [SerializeField] GameObject buggyMinigame;
 
         float timeSinceUpdatedPatientHealing;
 
@@ -194,6 +216,14 @@ namespace Healing
         {
             Instantiate(inputMinigame, transform);
         }
+        void StartLockpickMinigame()
+        {
+            Instantiate(lockpickMinigame, transform);
+        }
+        void StartBuggyMinigame()
+        {
+            Instantiate(buggyMinigame, transform);
+        }
 
         void DischargePatient()
         {
@@ -215,16 +245,22 @@ namespace Healing
             minigameUI.SetActive(false);
             resourceUI.SetActive(false);
 
+            for (int i = 0; i < resourceButtons.Length; i++)
+            {
+                resourceButtons[i].borderImage.color = defaultBorderColour;
+            }
 
             switch (currentState)
             {
                 case HealingManagerState.givingResources:
-                    resourceUI.SetActive(true);
+                    resourceUI.SetActive(true); SetNumberOfResourcesUIReminder();
                     break;
                 case HealingManagerState.minigame:
                     minigameUI.SetActive(true);
                     break;
             }
+
+            //oaef display discharge button if we open and the character can be discharged
         }
         void HideHealingUI()
         {
@@ -247,13 +283,11 @@ namespace Healing
         }
 
         [SerializeField] GameObject dischargeButton;
-        [SerializeField] GameObject closeButton;
         bool patientCanBeDischarged;
         public void EnableDischargeButton(Patient patient)
         {
             if (currentPatient != patient) { return; };
 
-            closeButton.SetActive(false);
             dischargeButton.SetActive(true);
             patientCanBeDischarged = true;
         }
@@ -266,10 +300,15 @@ namespace Healing
         struct NewButton
         {
             public RectTransform location;
+            public Image borderImage;
             public ResourceTypes resource;
         }
 
         [SerializeField] NewButton[] resourceButtons;
+
+        [SerializeField] Color defaultBorderColour;
+        [SerializeField] Color correctAmountBorderColour;
+        [SerializeField] Color incorrectBorderColour;
         int selectedButton;
 
         void ChangeSelection(bool increase)
@@ -289,11 +328,38 @@ namespace Healing
             bool hasResource = PlayerInventory.RemoveResource(resourceChosen);
             if (hasResource)
             {
-                currentPatient.ConsumeResources(resourceChosen);
+                bool ifFalseDisableButton;
+                currentPatient.ConsumeResources(resourceChosen, out ifFalseDisableButton);
+
+                if (!ifFalseDisableButton)
+                {
+                    resourceButtons[selectedButton].borderImage.color = incorrectBorderColour;
+                    //oaef disable this button until this menu is closed
+                }
+                SetNumberOfResourcesUIReminder();
             }
 
-            #endregion
+           
         }
+
+        [SerializeField] Transform ResourcesRequiredCounter;
+        [SerializeField] GameObject resourceCounterUIPrefab;
+
+        void SetNumberOfResourcesUIReminder()
+        {
+            int number = currentPatient.RequiredResourcesRemaining;
+            foreach (Transform child in ResourcesRequiredCounter)
+            {
+                Destroy(child.gameObject);
+            }
+
+            for (int i = 0; i < number; i++)
+            {
+                Instantiate(resourceCounterUIPrefab, ResourcesRequiredCounter);
+            }
+        }
+
+        #endregion
 
     }
 }

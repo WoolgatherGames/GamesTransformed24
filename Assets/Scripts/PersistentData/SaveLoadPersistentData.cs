@@ -1,3 +1,4 @@
+using Inventory;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -111,7 +112,9 @@ namespace GameData
         private float lastHealTimeStamp;
         //private float nextConsumptionTimeStamp;
         private Healing.Patient.PatientProblems medicalProblem;
-        PatientProblemDialogue resourceProblem;
+
+        private string resourceProblemDialogue;
+        private ResourceTypes[] resourceProblemRequired;
 
         bool patientNeedsResources;
         int resourceThresholdsMet;
@@ -123,11 +126,13 @@ namespace GameData
         //public float NextConsumptionTimeStamp { get { return  nextConsumptionTimeStamp; } }
 
         public Healing.Patient.PatientProblems MedicalProblem { get { return medicalProblem; } }
-        public PatientProblemDialogue ResourceProblem { get { return resourceProblem; } }
         public bool PatientNeedsResources { get { return patientNeedsResources; } }
         public int ResourceThresholdsMet { get { return resourceThresholdsMet; } }
 
-        public PatientData(float currentHealingProgress, float maxHealingProgress, float healingRate, float lastHealTimeStamp, Healing.Patient.PatientProblems medicalProblem, PatientProblemDialogue problemDialogue, bool needsResource, int thresholdsmet)
+        public string ResourceProblemDialogue { get { return resourceProblemDialogue; } }
+        public ResourceTypes[] ResourceProblemRequired { get { return resourceProblemRequired; } }
+
+        public PatientData(float currentHealingProgress, float maxHealingProgress, float healingRate, float lastHealTimeStamp, Healing.Patient.PatientProblems medicalProblem, bool needsResource, int thresholdsmet, string dialogue, ResourceTypes[] wantedResources)
         {
             this.currentHealingProgress = currentHealingProgress;
             this.maxHealingProgress = maxHealingProgress;
@@ -136,9 +141,11 @@ namespace GameData
             //this.nextConsumptionTimeStamp = newConsumptionTimeStamp;
             this.medicalProblem = medicalProblem;
 
-            resourceProblem = problemDialogue;
             patientNeedsResources = needsResource;
             resourceThresholdsMet = thresholdsmet;
+
+            resourceProblemDialogue = dialogue;
+            resourceProblemRequired = wantedResources;
         }
     }
 

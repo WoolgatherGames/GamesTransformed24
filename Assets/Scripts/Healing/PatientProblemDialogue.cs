@@ -6,7 +6,9 @@ using UnityEngine;
 [CreateAssetMenu]
 public class PatientProblemDialogue : ScriptableObject
 {
+    [SerializeField]
     string dialogue;
+    [SerializeField]    
     ResourceTypes[] resources;
 
     public string Dialogue { get { return dialogue; } }

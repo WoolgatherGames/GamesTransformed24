@@ -54,19 +54,19 @@ namespace Inventory {
             {
                 case ResourceTypes.flower:
                     if (flowerCount == 0) { return false; }
-                    else { flowerCount--; return true; }
+                    else { flowerCount--; OnResourcesChanged?.Invoke(); return true; }
                 case ResourceTypes.treeSap:
                     if (treeSapCount == 0) { return false; }
-                    else { treeSapCount--; return true; }
+                    else { treeSapCount--; OnResourcesChanged?.Invoke(); return true; }
                 case ResourceTypes.feathers:
                     if (feathersCount == 0) { return false; }
-                    else { feathersCount--; return true; }
+                    else { feathersCount--; OnResourcesChanged?.Invoke(); return true; }
                 case ResourceTypes.mushroom:
                     if (mushroomCount == 0) { return false; }
-                    else { mushroomCount--; return true; }
+                    else { mushroomCount--; OnResourcesChanged?.Invoke(); return true; }
                 case ResourceTypes.conchShell:
                     if (conchShellCount == 0) { return false; }
-                    else { conchShellCount--; return true; }
+                    else { conchShellCount--; OnResourcesChanged?.Invoke(); return true; }
             }
 
             Debug.LogError("This shouldnt have happened");
