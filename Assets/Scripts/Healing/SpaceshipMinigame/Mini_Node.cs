@@ -8,6 +8,8 @@ public class Mini_Node : MonoBehaviour
 
     [SerializeField] LayerMask mask;
 
+    public int myIndex;
+
     public List<mini_destructable> CastRay()
     {
         //check all objects left + right 

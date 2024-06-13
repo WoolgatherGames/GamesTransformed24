@@ -68,12 +68,18 @@ public class Mini_spaceship : MonoBehaviour
                 }
             }
         }
+
+        if (destroyNodesEmergencyBreak > 0f)
+        {
+            destroyNodesEmergencyBreak -= Time.deltaTime;
+        }
     }
-    List<GameObject> nodeList = new List<GameObject>();
+    List<Mini_Node> nodeList = new List<Mini_Node>();
     List<Vector2> nodePositions = new List<Vector2>();
     void CreateNode(Vector2 placementPoint)
     {
-        GameObject newNode = Instantiate(node, placementPoint, Quaternion.identity);
+        Mini_Node newNode = Instantiate(node, placementPoint, Quaternion.identity).GetComponent<Mini_Node>();
+        newNode.myIndex = nodeList.Count;
         nodeList.Add(newNode);
 
         nodePositions.Add(placementPoint);
@@ -133,7 +139,7 @@ public class Mini_spaceship : MonoBehaviour
         List<mini_destructable> objectsToTakeDamage = new List<mini_destructable>();
         for (int x = 0; x < nodeList.Count; x++)
         {
-            objectsToTakeDamage.AddRange(nodeList[x].GetComponent<Mini_Node>().CastRay());
+            objectsToTakeDamage.AddRange(nodeList[x].CastRay());
         }
         yield return new WaitForEndOfFrame();//throwing this in here for performance reasons to just, ensure that too much code doesnt happen in one frame
 
@@ -152,15 +158,43 @@ public class Mini_spaceship : MonoBehaviour
     [SerializeField] float damagePerNode = 0.2f;
 
 
-    void ResetNodes()
+    public void ResetNodes()
     {
         nodePositions = new List<Vector2>();
-        foreach (GameObject node in nodeList)
+        foreach (Mini_Node node in nodeList)
         {
-            Destroy(node);
+            Destroy(node.gameObject);
         }
-        nodeList = new List<GameObject>();
+        nodeList = new List<Mini_Node>();
 
+        UpdateLineRenderer();
+    }
+
+
+    float destroyNodesEmergencyBreak;
+    public void DestroyNodesFromIndex(int index)
+    {
+        if (destroyNodesEmergencyBreak > 0f) { return; } else { destroyNodesEmergencyBreak = 0.1f; }//testing
+        if (index >= nodeList.Count)
+        {
+            return;
+        }
+
+        for (int i = 0; i < index; i++)
+        {
+            Destroy(nodeList[i].gameObject);
+        }
+
+        nodeList.RemoveRange(0, index + 1);
+        nodePositions.RemoveRange(0, index + 1);
+
+        if (nodeList.Count > 0)
+        {
+            for (int i = 0; i < nodeList.Count; i++)
+            {
+                nodeList[i].myIndex = i;
+            }
+        }
         UpdateLineRenderer();
     }
 
@@ -200,8 +234,8 @@ public class Mini_spaceship : MonoBehaviour
         float movementSpeed = 17f;
 
         float accelerationPower = 0.75f;
-        float turnSpeed = -11f;
-        float maxAcceleration = 1.5f;
+        float turnSpeed = -15f;
+        float maxAcceleration = 2f;
         float minAcceleration = -0.5f;
 
         float forwardInput = movementInput.y;
@@ -221,7 +255,7 @@ public class Mini_spaceship : MonoBehaviour
         {
             //player is not inputting anything. move towards zero
             //accelerationTimer *= 0.85f;
-            float mod = accelerationTimer > 0f ? -1f : 1f;
+            float mod = accelerationTimer > 0f ? -1.5f : 1.5f;
             accelerationTimer += mod * accelerationPower * 0.02f;
         }
         accelerationTimer = Mathf.Clamp(accelerationTimer, minAcceleration, maxAcceleration);
@@ -239,7 +273,6 @@ public class Mini_spaceship : MonoBehaviour
         //turnInput *= turnDampner;
 
         rb.AddTorque(turnInput * turnSpeed);
-        Debug.Log(turnInput);
         rb.AddForce(transform.up * totalSpeed);
     }
 }

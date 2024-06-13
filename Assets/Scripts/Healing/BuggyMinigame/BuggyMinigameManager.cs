@@ -57,7 +57,7 @@ public class BuggyMinigameManager : MonoBehaviour
             //oaef score on the healing manager
             if (HealingManager.Instance != null)
             {
-                HealingManager.Instance.MinigameHealPatient(2.5f);
+                HealingManager.Instance.MinigameHealPatient(4f);
             }
 
             nextCheckpoint++;

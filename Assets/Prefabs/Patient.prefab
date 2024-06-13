@@ -130,6 +130,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ad977abb27f9d934d9e4783b8d90721d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  face: {fileID: 21300000, guid: 012a4ce45855c97469d06bba4ff3f6f6, type: 3}
   progressBarParent: {fileID: 0}
   progressBarFill: {fileID: 0}
 --- !u!1 &5125658779781866530

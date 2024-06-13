@@ -15,11 +15,12 @@ namespace Healing
         //balance values
         float startingHealth { get { return 20f; } }
         public static float allowedMaximumHealth { get { return 30f; } }
-        float[] requiredResourceThresholds { get { return new float[] { 0f, 50f, 80f }; } }
+        float[] requiredResourceThresholds { get { return new float[] { -1f, 50f, 80f }; } }
         float giveResourceThresholdDifference { get { return 10f; } }
         int resourceThresholdsMet;
 
         string problemDialogue;
+        public string ProblemDialogue { get { return  problemDialogue; } }
         List<ResourceTypes> requiredResourcs;
         public int RequiredResourcesRemaining { get { if (requiredResourcs == null) { return 0; } else { return requiredResourcs.Count; } } }
 
@@ -55,7 +56,9 @@ namespace Healing
         //float canGiveResourcesTimeBetween { get { if (healingRate <= 0f) { return 0f; } else { return (allowedMaximumHealth - 10f) / healingRate; } } }
 
 
-
+        [SerializeField]//oaef (this shouldnt be serialized but rather randomly set)
+        Sprite face;
+        public Sprite Face { get { return face; } }
 
         public enum PatientProblems
         {
@@ -93,7 +96,7 @@ namespace Healing
             //becomes a patient the player can heal
 
             //healing rate = randomly decide how much % progres should be made per 60 seconds
-            healingRate = Random.Range(8f, 11f) * 0.0166f;//0.0166 is equivilent to 1/60 because healing rate is based on PER minute (60 seconds)
+            healingRate = Random.Range(6f, 9f) * 0.0166f;//0.0166 is equivilent to 1/60 because healing rate is based on PER minute (60 seconds)
 
             //TESTING
             //healingRate = 5f;
@@ -118,9 +121,32 @@ namespace Healing
             }
         }
 
+        public enum PatientResourceStatus
+        {
+            doesntNeed,
+            inThresholdRange,
+            inNeed
+        }
+        PatientResourceStatus patientNeedsResources;
+
         void ChooseResourceProblem()
         {
-            patientNeedsResources = true;
+            Debug.Log("Marker");
+            //patientNeedsResources = true;
+
+            /*bool startDepletingHealing = false;
+            float threshhold = currentResourceThresold - giveResourceThresholdDifference;
+            if (currentHealingProgress >= currentResourceThresold)
+            {
+            }
+            else if (currentHealingProgress >= threshhold)
+            {
+                startDepletingHealing = true;
+            }*/
+
+
+            //patientNeedsResources = startDepletingHealing ? PatientResourceStatus.inNeed : PatientResourceStatus.inThresholdRange;
+
             PatientProblemDialogue resourceProblem = HealingManager.Instance.ReturnRandomResourceProblem();
             problemDialogue = resourceProblem.Dialogue;
             requiredResourcs = resourceProblem.Resources.ToList();
@@ -166,22 +192,24 @@ namespace Healing
 
             if (AreResourcesRequired())
             {
-                Debug.Log("boop");
+                //Debug.Log("boop");
                 progressMade = -progressMade * healingReductionRate;
             }
             //we also need to check if progress made would put us ABOVE the cap
             else if (currentHealingProgress + progressMade > currentResourceThresold)
             {
-                Debug.Log("beep");
+                //Debug.Log("beep");
                 //player should heal upto the threshold, then for whats left over, begin regressing
                 float leftoverProgress = currentResourceThresold - currentHealingProgress + progressMade;
                 progressMade = -leftoverProgress * healingReductionRate;
 
                 //this patient now needs resources
+                patientNeedsResources = PatientResourceStatus.inNeed;
                 ChooseResourceProblem();
             }
             
             currentHealingProgress = Mathf.Clamp(currentHealingProgress + progressMade, 0f, maximumHealingProgress);
+            AddMaxHealingProgress(0);//calling this just to update the max health bar
 
             HealingManager.Instance.UpdateHealthBars(currentHealingProgress, maximumHealingProgress, this);
 
@@ -199,12 +227,21 @@ namespace Healing
         float timeStampOfNextConsumptionCheck;
 
 
-        bool patientNeedsResources;
+        //bool patientNeedsResources;
         public bool CheckIfResourceMenuShouldOpen()
         {
             float threshhold = currentResourceThresold - giveResourceThresholdDifference;
-
-            if (currentHealingProgress > threshhold || AreResourcesRequired())
+            if (patientNeedsResources == PatientResourceStatus.inThresholdRange)
+            {
+                return true;
+            } 
+            if (currentHealingProgress > threshhold)
+            {
+                patientNeedsResources = PatientResourceStatus.inThresholdRange;
+                ChooseResourceProblem();
+                return true;
+            }
+            if (AreResourcesRequired())
             {
                 return true;
             }
@@ -215,13 +252,13 @@ namespace Healing
         }
         bool AreResourcesRequired()
         {
-            if (patientNeedsResources)
+            if (patientNeedsResources == PatientResourceStatus.inNeed)
             {
                 return true;
             }
             else if (currentHealingProgress > currentResourceThresold)
             {
-                //if the code ever comes through here i reckon somethings gone wrong 
+                patientNeedsResources = PatientResourceStatus.inNeed;
                 ChooseResourceProblem();
                 return true;
             }
@@ -255,7 +292,8 @@ namespace Healing
             {
                 Debug.Log("All done");
                 timeStampOfLastConsumptionCheck = Time.time;
-                patientNeedsResources = false;
+                //patientNeedsResources = false;
+                patientNeedsResources = PatientResourceStatus.doesntNeed;
                 resourceThresholdsMet++;
 
                 //tell the healing manager to change to the minigame
@@ -306,16 +344,10 @@ namespace Healing
             }
         }*/
 
-
-
-        [SerializeField] GameObject progressBarParent;
-        [SerializeField] Image progressBarFill;
         void DisplayProgressBar()
         {
             //performed when this object is interactable
             PlayerController.OnInteractionTargetChange += HideProgressBar;
-
-            progressBarParent.SetActive(true);
 
         }
         void OnDisable()
@@ -325,8 +357,6 @@ namespace Healing
         void HideProgressBar()
         {
             PlayerController.OnInteractionTargetChange -= HideProgressBar;
-
-            progressBarParent.SetActive(false);
 
         }
 

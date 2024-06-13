@@ -116,7 +116,8 @@ namespace GameData
         private string resourceProblemDialogue;
         private ResourceTypes[] resourceProblemRequired;
 
-        bool patientNeedsResources;
+        //bool patientNeedsResources;
+        Healing.Patient.PatientResourceStatus patientNeedsResources;
         int resourceThresholdsMet;
 
         public float CurrentHealingProgress { get { return currentHealingProgress; } }
@@ -126,13 +127,14 @@ namespace GameData
         //public float NextConsumptionTimeStamp { get { return  nextConsumptionTimeStamp; } }
 
         public Healing.Patient.PatientProblems MedicalProblem { get { return medicalProblem; } }
-        public bool PatientNeedsResources { get { return patientNeedsResources; } }
+        //public bool PatientNeedsResources { get { return patientNeedsResources; } }
+        public Healing.Patient.PatientResourceStatus PatientNeedsResources { get { return patientNeedsResources; } }
         public int ResourceThresholdsMet { get { return resourceThresholdsMet; } }
 
         public string ResourceProblemDialogue { get { return resourceProblemDialogue; } }
         public ResourceTypes[] ResourceProblemRequired { get { return resourceProblemRequired; } }
 
-        public PatientData(float currentHealingProgress, float maxHealingProgress, float healingRate, float lastHealTimeStamp, Healing.Patient.PatientProblems medicalProblem, bool needsResource, int thresholdsmet, string dialogue, ResourceTypes[] wantedResources)
+        public PatientData(float currentHealingProgress, float maxHealingProgress, float healingRate, float lastHealTimeStamp, Healing.Patient.PatientProblems medicalProblem, Healing.Patient.PatientResourceStatus needsResource, int thresholdsmet, string dialogue, ResourceTypes[] wantedResources)
         {
             this.currentHealingProgress = currentHealingProgress;
             this.maxHealingProgress = maxHealingProgress;

@@ -30,6 +30,12 @@ namespace Healing
         Patient currentPatient;
         public Patient CurrentPatient { get { return currentPatient; } }
 
+        [SerializeField] GameObject inputMinigame;
+        [SerializeField] GameObject lockpickMinigame;
+        [SerializeField] GameObject buggyMinigame;
+        [SerializeField] GameObject spaceshipMinigame;
+
+
         float preventDoubleClick;
 
         enum HealingManagerState
@@ -125,9 +131,9 @@ namespace Healing
                 case Patient.PatientProblems.BrokenBone:
                     StartBuggyMinigame(); break;
                 case Patient.PatientProblems.Hemorrhage:
-                    StartBuggyMinigame(); break;
+                    StartBuggyMinigame(); break;//oaef
                 case Patient.PatientProblems.Infection:
-                    StartLockpickMinigame(); break;
+                    StartSpaceshipMinigame(); break;
                 case Patient.PatientProblems.OpenWound:
                     StartDirectionalMinigame(); break;
                 case Patient.PatientProblems.Concussion:
@@ -188,12 +194,11 @@ namespace Healing
         }
 
 
-        [SerializeField] GameObject inputMinigame;
-        [SerializeField] GameObject lockpickMinigame;
-        [SerializeField] GameObject buggyMinigame;
+
 
         float timeSinceUpdatedPatientHealing;
 
+        float printTextTimer;
         private void Update()
         {
             if (preventDoubleClick >= 0f)
@@ -210,19 +215,50 @@ namespace Healing
                     currentPatient.UpdateHealingProgress();
                 }
             }
+
+            if (printText)
+            {
+                printTextTimer += Time.deltaTime;
+                if (printTextTimer > 0.05f)
+                {
+                    if (textGoal.Length > textIndex)
+                    {
+                        printTextTimer = 0f;
+                        patientText.text += textGoal[textIndex];
+                        textIndex++;
+                    }
+                    else
+                    {
+                        printText = false;
+                    }
+                }
+            }
         }
 
         void StartDirectionalMinigame()
         {
+            minigameInstructions.text = "Tie bandages around your patient by inputting the motions shown with your movement controls";
             Instantiate(inputMinigame, transform);
         }
         void StartLockpickMinigame()
         {
+            minigameInstructions.text = "Find the correct frequency to destroy the brain worms. Move your desired frequency by inputting up and down. " +
+                "When the marker reaches your inputted frequency it'll attack the worms. The closer your chosen frequency was to success, the more bars " +
+                "will be displayed";
             Instantiate(lockpickMinigame, transform);
         }
         void StartBuggyMinigame()
         {
+            minigameInstructions.text = "Remove toxins from the intestines. Your remote mini-ship will suck out the toxins as you drive around your " +
+                "patients intestines. Control the ship with your movement controls, be careful not to slip off the edge or the patient will need to " +
+                "swallow a new ship";
             Instantiate(buggyMinigame, transform);
+        }
+        void StartSpaceshipMinigame()
+        {
+            minigameInstructions.text = "Destroy infectious cells by quarantining them within your micro-drone's trail. If any cells hit the trail, they'll " +
+                "destroy it. You can make sharper turns by breaking";
+            Instantiate(spaceshipMinigame, transform);
         }
 
         void DischargePatient()
@@ -244,6 +280,7 @@ namespace Healing
             dischargeButton.SetActive(false);
             minigameUI.SetActive(false);
             resourceUI.SetActive(false);
+            minigameInstructions.text = "";
 
             for (int i = 0; i < resourceButtons.Length; i++)
             {
@@ -253,7 +290,7 @@ namespace Healing
             switch (currentState)
             {
                 case HealingManagerState.givingResources:
-                    resourceUI.SetActive(true); SetNumberOfResourcesUIReminder();
+                    resourceUI.SetActive(true); SetNumberOfResourcesUIReminder(); patientText.text = ""; printText = true; textIndex = 0; textGoal = currentPatient.ProblemDialogue; patientSprite.sprite = currentPatient.Face;
                     break;
                 case HealingManagerState.minigame:
                     minigameUI.SetActive(true);
@@ -292,10 +329,17 @@ namespace Healing
             patientCanBeDischarged = true;
         }
 
-
+        [SerializeField] TMP_Text minigameInstructions;
 
         //resource UI
         [SerializeField] RectTransform selectionObject;
+
+        [SerializeField] Image patientSprite;
+        [SerializeField] TMP_Text patientText;
+        bool printText;
+        string textGoal;
+        int textIndex;
+
         [System.Serializable]
         struct NewButton
         {

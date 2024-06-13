@@ -25,6 +25,7 @@ namespace Movement
             playerInput = new PlayerInput();
             playerInput.Input.Enable();
             playerInput.Input.Interact.performed += OnInteract;
+            playerInput.Input.Back.performed += OnBack;
 
             instance = this;
         }
@@ -162,6 +163,11 @@ namespace Movement
 
             closestInteractable?.Interact();
             InteractablePrompt.gameObject.SetActive(false);
+        }
+
+        void OnBack(InputAction.CallbackContext context)
+        {
+            if (playerIsDriving) { StepOutOfBuggy(); return; }
         }
 
         [SerializeField] Transform colliderPosition;

@@ -41,7 +41,7 @@ public class BoneBuggy_MinigameVer : MonoBehaviour
     void Movement()
     {
         //add a check to see if player WANTS to go max speed or not
-        float movementSpeed = 17f;
+        float movementSpeed = 15f;
 
         float accelerationPower = 0.75f;
         float turnSpeed = -0.25f;
